@@ -4,10 +4,14 @@ import threading
 import time
 from serial_reader import SerialReader
 import customtkinter as ctk
+from buffer_saver import BufferSaver
 
 
 class App:
     def __init__(self, master, serial=None):
+        # Buffer saver
+        self.buffer_saver = BufferSaver()
+
         self.master = master
         self.master.title("Arduino Analog Signal Reader")
         self.master.geometry("800x600")
@@ -39,6 +43,11 @@ class App:
         )
         self.stop_button.pack(pady=10)
 
+        self.save_button = ctk.CTkButton(
+            self.left_frame, text="Save to CSV", command=self.buffer_saver.save_to_csv
+        )
+        self.save_button.pack(pady=10)
+
         # Right frame for plot
         self.right_frame = ctk.CTkFrame(self.main_frame)
         self.right_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
@@ -62,6 +71,7 @@ class App:
     def update_plot(self):
         if self.running:
             value = self.serial_reader.read_signal()
+            self.buffer_saver.add_element(value)
             self.data.append(value)
 
             # Update stats
